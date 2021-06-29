@@ -1,5 +1,8 @@
 //get all specialists from database completed
-async function getAllSpecialists(req, res) {
+import { Request, Response, NextFunction } from 'express';
+const db=require('../db')
+
+async function getAllSpecialists(req:Request, res:Response) {
     try {
         const specialists = await db.any("SELECT * FROM users WHERE users.id=specialists.specialists_id");
         return res.json(specialists);
@@ -9,7 +12,7 @@ async function getAllSpecialists(req, res) {
 }
 
 //get a specialist matching id completed
-async function getSpecialistsById(req,res){
+async function getSpecialistsById(req:Request,res:Response){
     const specialistID=req.body["specialist_id"] ? parseInt(req.body["specialist_id"],10) : parseInt(req.params["specialist_id"])
     try{
         const specialist= await db.one(`SELECT * FROM specialists where id=$1`,
@@ -21,7 +24,7 @@ async function getSpecialistsById(req,res){
 }
 
 //search for specialist by name completed
-async function getSpecialistByName(req, res) {
+async function getSpecialistByName(req:Request, res:Response) {
     const first=JSON.stringify(req.params.first_name)
     const last=JSON.stringify(req.params.last_name)
     try {
@@ -33,7 +36,7 @@ async function getSpecialistByName(req, res) {
 }
 
 //get all specialists of a specific field completed
-async function getSpecialistsBySpecialty(req, res) {
+async function getSpecialistsBySpecialty(req:Request, res:Response) {
     const specialty=JSON.stringify(req.params.medical_issue)
     try {
         const specialists = await db.one('SELECT specialists.specialist_id, users.first_name, users.last_name, users.medical_issue FROM specialists, users WHERE users.medical_issue = $1',
@@ -45,21 +48,21 @@ async function getSpecialistsBySpecialty(req, res) {
 }
 
 //register as a specialist 
-async function specialistSignUp(req, res) {
-    let specialist = req.body
-    try {
-        const specialists = await db.none(`INSERT INTO specialists (first_name, last_name, user_name, email, password, medical_issue, account_type) VALUES (${first_name}, ${last_name},${user_name}, ${email},${password},${medical_issue},${account_type}`,
-        specialist);
-        return res.json(specialists);
-    } catch (err) {
-        res.send(err);
-    }
-}
+// async function specialistSignUp(req:Request, res:Response) {
+//     let specialist = req.body
+//     try {
+//         const specialists = await db.none(`INSERT INTO specialists (first_name, last_name, user_name, email, password, medical_issue, account_type) VALUES (${first_name}, ${last_name},${user_name}, ${email},${password},${medical_issue},${account_type}`,
+//         specialist);
+//         return res.json(specialists);
+//     } catch (err) {
+//         res.send(err);
+//     }
+// }
 
 module.exports = {
     getSpecialistsById,
     getAllSpecialists,
     getSpecialistByName,
     getSpecialistsBySpecialty,
-    specialistSignUp
+    //specialistSignUp
 }

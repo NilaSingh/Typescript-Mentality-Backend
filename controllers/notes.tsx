@@ -1,6 +1,7 @@
 const db=require('../db')
+import { Request, Response, NextFunction } from 'express';
 
-async function getAllNotes(req, res) {
+async function getAllNotes(req:Request, res:Response) {
     try{
         const notes=await db.any(`SELECT * FROM notes`)
         return res.json(notes)
@@ -10,7 +11,7 @@ async function getAllNotes(req, res) {
 }
 
 // //get all notes for a specific user
-async function getUserNotes(req, res) {
+async function getUserNotes(req:Request, res:Response) {
     const userID=parseInt(req.params.user_id,10)
     try{
         const notes=await db.any(`SELECT * FROM notes WHERE user_id=$1`,
@@ -22,7 +23,7 @@ async function getUserNotes(req, res) {
 }
 
 //get specific note by id
-async function getSpecificNote(req, res) {
+async function getSpecificNote(req:Request, res:Response) {
     const noteInfo = req.body;
     try{
         const notes = await db.one(`SELECT * FROM notes WHERE notes_id=$1`,
@@ -34,7 +35,7 @@ async function getSpecificNote(req, res) {
 }
 
 //create a note
-async function createNote(req, res) {
+async function createNote(req:Request, res:Response) {
     const noteInfo = req.body;
     try{
         await db.none(`INSERT INTO notes (content, user_id) VALUES ($1,$2)`,
@@ -49,7 +50,7 @@ async function createNote(req, res) {
 
 
 //delete a note
-async function deleteNote(req,res){
+async function deleteNote(req:Request,res:Response){
     const noteInfo = req.body;
     try{
         await db.none(`DELETE FROM notes WHERE notes_id=$1`,
@@ -63,7 +64,7 @@ async function deleteNote(req,res){
 }
 
 //update a note
-async function updateNote(req, res) {
+async function updateNote(req:Request, res:Response) {
     const noteInfo=req.body;
     try {
         await db.none(`UPDATE users SET content=$1 WHERE notes_id=$2`,
