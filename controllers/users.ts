@@ -7,13 +7,24 @@ import { Request, Response, NextFunction } from 'express';
 const {generateToken} =  require('../middleware/user_auth')
 //USER TABLE CONTROLLERS  
 //get all users from database
+type User = {
+    id:number,
+    first_name:string,
+    last_name:string, 
+    user_name:string, 
+    email:string,
+    password:string, 
+    medical_issue:string,
+    account_type:string
+}
+
 async function getAllUsers(req:Request,res:Response){
     try{
-        const users = await db.any(`SELECT * FROM users`)
+        const users:User[]= await db.any(`SELECT * FROM users`)
         console.log(users)
         return res.json(users)
     }catch(err) {
-        res.send(err)
+        return res.json({message: err.message})
     }
 }
 
@@ -25,27 +36,27 @@ async function getUserByName(req:Request,res:Response) {
         const results = await db.any(`SELECT * FROM users WHERE user_name = $1`, query)
         return res.json(results)
     }catch(err){
-        res.json(err.message)
+        return res.json({message: err.message})
     }
 }
 
 //get the username and password, returns the username  user sign in function
 async function getUserAccountInfo(req:Request,res:Response){ 
-    const username = req.params.userName;
-    const password= req.params.password;
+    const username:string = req.params.userName;
+    const password:string = req.params.password;
     try {
         const user = await db.one(`SELECT * FROM users WHERE users.user_name = ${username} AND users.password = ${password}`);
         return res.json(user);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
 //get a single user from table, now works
 async function getAUser(req:Request,res:Response){
-    const id=parseInt(req.params.id,10)
+    const id:number=parseInt(req.params.id,10)
     try {
-        const user = await db.any(`SELECT * FROM users WHERE id = $1`, id)
+        const user:User = await db.any(`SELECT * FROM users WHERE id = $1`, id)
         return res.json(user)
     }catch(err){
         return res.json({message: err.message})
@@ -54,22 +65,22 @@ async function getAUser(req:Request,res:Response){
 
 //get users by the a certain issue
 async function getUsersByIssue(req:Request, res:Response) {
-    const issue=req.params.issue;
+    const issue:string=req.params.issue;
     try {
-        const specialists = await db.any(`SELECT * FROM users WHERE medical_issue = $1`, issue);
+        const specialists:User[] = await db.any(`SELECT * FROM users WHERE medical_issue = $1`, issue);
         return res.status(200).json(specialists);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
 //SPECIALIST TABLE CONTROLLERS
 async function getAllSpecialists(req:Request, res:Response) {
     try {
-        const specialists = await db.any(`SELECT * FROM users WHERE account_type = 'specialist'`);
+        const specialists:User[] = await db.any(`SELECT * FROM users WHERE account_type = 'specialist'`);
         return res.json(specialists);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
@@ -77,18 +88,18 @@ async function getAllSpecialists(req:Request, res:Response) {
 //PATIENT TABLE CONTROLLERS
 async function getAllPatients(req:Request, res:Response) {
     try {
-        const patients = await db.any(`SELECT * FROM users WHERE account_type = 'patient'`);
+        const patients:User[] = await db.any(`SELECT * FROM users WHERE account_type = 'patient'`);
         return res.json(patients);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
 //create one user and add to table not added to routes yet
 async function registerUser(req:Request, res:Response){
-    let user=req.body
-    let hashedPassword;
-    const rounds=10
+    let user:User=req.body
+    let hashedPassword:string;
+    const rounds:number=10
     // console.log('created user, ',user)
     if(!user){
         return res.status(400).json({
@@ -123,10 +134,10 @@ async function registerUser(req:Request, res:Response){
 
 
 async function userLogin(req:Request, res:Response){
-    const users=req.body;
-    const password= req.params.password;
+    const users:User=req.body;
+    const password:string= req.params.password;
     const {exists} = await db.one(`SELECT EXISTS(SELECT * FROM users WHERE user_name = $1)`, users.user_name)
-    let user;
+    let user:User;
     if(!exists){
         return res.status(404).json({
             message: "User Not Found"
@@ -135,7 +146,7 @@ async function userLogin(req:Request, res:Response){
         user = await db.one(`SELECT * FROM users WHERE user_name = $1 AND password = $2)`, [users.user_name, users.password])
         console.log(user)
     }
-    let match;
+    let match:string;
     try{
         match=await bcrypt.compare(password, user.password)
         if(!match){
@@ -153,14 +164,14 @@ async function userLogin(req:Request, res:Response){
 
 //select a specific type of user
 async function getAccountType(req:Request, res:Response){
-    const accountType=JSON.stringify(req.params.account_type);
+    const accountType:string=JSON.stringify(req.params.account_type);
     if(accountType === 'Specialist'){
         try{
-            const userTypes = await db.any(`SELECT * FROM users WHERE account_type=$1`,
+            const userTypes:User[] = await db.any(`SELECT * FROM users WHERE account_type=$1`,
             'specialist')
             return res.json(userTypes)
         } catch (err) {
-            res.send(err)
+            return res.json({message: err.message})
         }
     }else if(accountType === "User"){
         try{
@@ -168,49 +179,50 @@ async function getAccountType(req:Request, res:Response){
             'patient')
             return res.json(userTypes)
         } catch (err) {
-            res.send(err)
+            return res.json({message: err.message})
         }
     }
+    return
 }
 
 //get user by account by account_type by user_name
 async function getAccountByTypeAndUsername(req:Request, res:Response){
-    let info = req.body;
+    let info:User = req.body;
     try {
-        const users = await db.any(`SELECT * FROM users WHERE account_type = $1 AND user_name = $2`, [info.account_type, info.user_name]);
+        const users:User[] = await db.any(`SELECT * FROM users WHERE account_type = $1 AND user_name = $2`, [info.account_type, info.user_name]);
         return res.json(users);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
 async function getAccountByIssueAndUsername(req:Request, res:Response){
-    let info = req.body;
+    let info:User = req.body;
     try {
-        const users = await db.any(`SELECT * FROM users WHERE medical_issue = $1 AND user_name = $2`, [info.medical_issue, info.user_name]);
+        const users:User = await db.any(`SELECT * FROM users WHERE medical_issue = $1 AND user_name = $2`, [info.medical_issue, info.user_name]);
         return res.json(users);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
 async function getSpecificAccount(req:Request, res:Response){
-    let info = req.body;
+    let info:User = req.body;
     try {
-        const users = await db.any(`SELECT * FROM users WHERE medical_issue = $1 AND user_name = $2 AND account_type = $3`, [info.medical_issue, info.user_name, info.account_type]);
+        const users:User = await db.any(`SELECT * FROM users WHERE medical_issue = $1 AND user_name = $2 AND account_type = $3`, [info.medical_issue, info.user_name, info.account_type]);
         return res.json(users);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 
 async function getAccountByTypeAndIssue(req:Request, res:Response){
-    let info = req.body;
+    let info:User = req.body;
     try {
-        const users = await db.any(`SELECT * FROM users WHERE medical_issue = $1 AND account_type = $2`, [info.medical_issue, info.account_type]);
+        const users:User[] = await db.any(`SELECT * FROM users WHERE medical_issue = $1 AND account_type = $2`, [info.medical_issue, info.account_type]);
         return res.json(users);
     } catch (err) {
-        res.send(err);
+        return res.json({message: err.message})
     }
 }
 module.exports = {

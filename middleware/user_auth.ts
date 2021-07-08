@@ -1,8 +1,32 @@
 // const { request } = require('express');
 const jwt = require('jsonwebtoken');
+import {NextFunction} from 'express';
+
+type User = {
+    id:number,
+    first_name:string,
+    last_name:string, 
+    user_name:string, 
+    email:string,
+    password:string, 
+    medical_issue:string,
+    account_type:string
+}
+type Request = {
+    user_id:number,
+    headers:header,
+    authorization: string
+}
+type Response = {
+    user_id:number,
+    status:any,
+}
+type header = {
+    authorization:string
+}
 
 // generate JWT
-async function generateToken (user) {
+async function generateToken (user:User) {
     const secret = process.env.SECRET;
 
     const token = await jwt.sign(
@@ -22,7 +46,7 @@ async function generateToken (user) {
 }
 
 // authorize
-async function authorize (req, res, next) {
+async function authorize (req:Request, res:Response, next:NextFunction) {
 
     const secret = process.env.SECRET;
 

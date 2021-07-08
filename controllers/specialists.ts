@@ -7,7 +7,7 @@ async function getAllSpecialists(req:Request, res:Response) {
         const specialists = await db.any("SELECT * FROM users WHERE users.id=specialists.specialists_id");
         return res.json(specialists);
     } catch (err) {
-        res.send(err);
+        return res.send(err);
     }
 }
 
@@ -31,7 +31,7 @@ async function getSpecialistByName(req:Request, res:Response) {
         const specialists = await db.one(`SELECT specialists.specialist_id, users.first_name, users.last_name, users.medical_issue FROM specialists, users WHERE users.first_name = ${first} AND users.last_name = ${last}`);
         return res.json(specialists);
     } catch (err) {
-        res.send(err);
+        return res.send(err);
     }
 }
 
@@ -43,26 +43,13 @@ async function getSpecialistsBySpecialty(req:Request, res:Response) {
         specialty);
         return res.json(specialists);
     } catch (err) {
-        res.send(err);
+        return res.send(err);
     }
 }
-
-//register as a specialist 
-// async function specialistSignUp(req:Request, res:Response) {
-//     let specialist = req.body
-//     try {
-//         const specialists = await db.none(`INSERT INTO specialists (first_name, last_name, user_name, email, password, medical_issue, account_type) VALUES (${first_name}, ${last_name},${user_name}, ${email},${password},${medical_issue},${account_type}`,
-//         specialist);
-//         return res.json(specialists);
-//     } catch (err) {
-//         res.send(err);
-//     }
-// }
 
 module.exports = {
     getSpecialistsById,
     getAllSpecialists,
     getSpecialistByName,
     getSpecialistsBySpecialty,
-    //specialistSignUp
 }
